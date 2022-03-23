@@ -9,7 +9,7 @@ EXTRACT_OBJS=(rm -f ./*.o; /usr/bin/llvm-ar x $(1))
 BUILD_LIB=rustc lib.rs -Cpanic=abort -Copt-level=3 -Clinker-plugin-lto=on -Ccodegen-units=1
 BUILD_EXE=rustc main.rs -Cpanic=abort -Copt-level=3 -Clinker-plugin-lto=on -Ccodegen-units=1 --emit=obj
 
-all: staticlib staticlib-fat-lto staticlib-thin-lto rlib exe cdylib rdylib
+all: staticlib staticlib-fat-lto staticlib-thin-lto rlib rlib-fat rlib-thin exe cdylib rdylib
 
 staticlib: lib.rs
 	$(BUILD_LIB) --crate-type=staticlib -o ./liblib.a
@@ -28,6 +28,16 @@ staticlib-thin-lto: lib.rs
 
 rlib: lib.rs
 	$(BUILD_LIB) --crate-type=rlib -o ./liblib.rlib
+# 	$(call EXTRACT_OBJS, liblib.rlib)
+# 	for file in ./liblib.*.rcgu.o; do $(call ASSERT_IS_BITCODE_OBJ, $$file); done
+
+rlib-fat: lib.rs
+	$(BUILD_LIB) --crate-type=rlib -o ./liblib-fat-lto.rlib -Clto=fat
+# 	$(call EXTRACT_OBJS, liblib.rlib)
+# 	for file in ./liblib.*.rcgu.o; do $(call ASSERT_IS_BITCODE_OBJ, $$file); done
+
+rlib-thin: lib.rs
+	$(BUILD_LIB) --crate-type=rlib -o ./liblib-thin-lto.rlib -Clto=thin
 # 	$(call EXTRACT_OBJS, liblib.rlib)
 # 	for file in ./liblib.*.rcgu.o; do $(call ASSERT_IS_BITCODE_OBJ, $$file); done
 
